@@ -44,4 +44,12 @@ load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
 
+load("@rules_python//python:pip.bzl", "pip_install")
+
+pip_install(
+    name = "py_deps",
+    python_interpreter_target = "@python_interpreter//:python_bin",
+    requirements = "//:requirements.txt",
+)
+
 register_toolchains("//:py_3_toolchain")
