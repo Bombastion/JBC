@@ -6,7 +6,7 @@ _configure_python_based_on_os = """
 if [[ "$OSTYPE" == "darwin"* ]]; then
     ./configure --prefix=$(pwd)/bazel_install --with-openssl=$(brew --prefix openssl)
 else
-    ./configure --prefix=$(pwd)/bazel_install --with-openssl=$(which openssl)
+    ./configure --prefix=$(pwd)/bazel_install
 fi
 """
 
