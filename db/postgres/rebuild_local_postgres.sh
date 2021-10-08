@@ -4,7 +4,7 @@ POSTGRES_VERSION=postgres:14.0-bullseye
 POSTGRES_PORT=${POSTGRES_PORT}
 DOCKER_CONTAINER_NAME=jbc-postgres
 
-POSTGRES_INIT_FILE=db/postgres_v1.sql
+POSTGRES_INIT_FILE=db/postgres/v1_postgres.sql
 
 if [ -z ${POSTGRES_PORT} ] ; then
     POSTGRES_PORT=5432
