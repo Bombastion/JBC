@@ -13,4 +13,5 @@ py_test(
         requirement("pytest"),
         requirement("wcwidth"),
     ],
+    size="small",
 )
