@@ -53,10 +53,7 @@ pip_install(
     requirements = "//:requirements.txt",
 )
 
-register_toolchains("//:py_3_toolchain")
-
-# Proto rules
-
+# Bazel proto rules
 http_archive(
     name = "rules_proto",
     sha256 = "66bfdf8782796239d3875d37e7de19b1d94301e8972b3cbd2446b332429b4df1",
@@ -70,3 +67,15 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 rules_proto_dependencies()
 rules_proto_toolchains()
 
+
+# Google proto rules
+git_repository(
+    name = "com_google_protobuf",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    tag = "v3.18.0",
+)
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+# This line must be last
+register_toolchains("//:py_3_toolchain")
