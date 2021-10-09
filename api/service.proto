@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "api/entities.proto";
+
+service JbcService {
+    rpc AddItem(AddItemRequest) returns (AddItemResponse);
+    rpc RemoveItem(RemoveItemRequest) returns (RemoveItemResponse);
+
+}
+
+message AddItemRequest {
+    // Name of the item. Must be unique
+    string name = 1;
+    // Amount to add
+    uint32 quantity = 2;
+    // The client's ID
+    Uuid client_id = 3;
+    // The ID of the collection to add this item to
+    Uuid collection_id = 4;
+    // OPTIONAL: The ID of the type of item. Will be created if no name match is found
+    Uuid item_type_id = 5;
+}
+
+message AddItemResponse {
+    // ID of the added item
+    Uuid item_id = 1;
+    // The ID of the type of the added item
+    Uuid item_type_id = 2;
+    // The current amount in the collection
+    uint32 quantity = 3;
+}
+
+message RemoveItemRequest {
+    // The ID of the item to remove
+    Uuid item_id = 1;
+    // Amount to remove
+    uint32 quantity = 2;
+}
+
+message RemoveItemResponse {
+    // The current amount in the collection
+    uint32 quantity = 1;
+}
