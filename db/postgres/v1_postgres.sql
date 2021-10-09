@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS item (
     item_id uuid DEFAULT uuid_generate_v4(),
     collection_id uuid NOT NULL,
     item_type_id uuid NOT NULL,
-    name VARCHAR NOT NULL,
     PRIMARY KEY (item_id),
     CONSTRAINT fk_collection_id FOREIGN KEY (collection_id) REFERENCES item_collection (collection_id),
     CONSTRAINT fk_item_type_id FOREIGN KEY (item_type_id) REFERENCES item_type (item_type_id)
