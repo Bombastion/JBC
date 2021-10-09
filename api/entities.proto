@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message Uuid {
+    string value = 1;
+}
+
+message Item {
+    Uuid id = 1;
+    Uuid collection_id = 2;
+    Uuid item_type_id = 3;
+    Uuid client_id = 4;
+    string name = 5;
+    uint32 quantity = 6;
+}
