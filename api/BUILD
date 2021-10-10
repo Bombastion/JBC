@@ -1,14 +1,16 @@
 load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 
 py_proto_library(
-    name = "entities",
+    name = "entities_py_proto",
     srcs = ["entities.proto"],
+    visibility = ["//visibility:public"],
 )
 
 py_proto_library(
-    name = "service",
+    name = "service_py_proto",
     srcs = ["service.proto"],
     deps = [
-        ":entities",
+        ":entities_py_proto",
     ],
+    visibility = ["//visibility:public"],
 )
