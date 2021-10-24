@@ -1,12 +1,16 @@
 from flask import Flask
+import logging
+
+import db.model
+
 app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
    return """
-      _\r 
-     / \\\r
-    /   \\\r
+      _<br/> 
+     / \\<br/>
+    /   \\<br/>
    (_____)
    """
 
