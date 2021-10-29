@@ -1,14 +1,16 @@
-load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 
-proto_library(
-    name = "entities",
+py_proto_library(
+    name = "entities_py_proto",
     srcs = ["entities.proto"],
+    visibility = ["//visibility:public"],
 )
 
-proto_library(
-    name = "service",
+py_proto_library(
+    name = "service_py_proto",
     srcs = ["service.proto"],
     deps = [
-        ":entities",
+        ":entities_py_proto",
     ],
+    visibility = ["//visibility:public"],
 )

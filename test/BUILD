@@ -6,6 +6,7 @@ py_test(
     srcs = ["compiler_version_test.py"],
     deps = [
         requirement("attrs"),
+        requirement("markupsafe"),
         requirement("more-itertools"),
         requirement("packaging"),
         requirement("pluggy"),
