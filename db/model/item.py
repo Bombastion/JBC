@@ -12,4 +12,4 @@ class Item(Base):
     quantity = sa.Column(sa.Integer, nullable=False, default=0)
 
     def __repr__(self) -> str:
-        return f"Item(item_id={self.item_id}, collection_id={self.client_id}, item_type_id={self.item_type_id}, quantity={self.quantity})"
+        return f"Item(item_id={self.item_id}, collection_id={self.collection_id}, item_type_id={self.item_type_id}, quantity={self.quantity})"

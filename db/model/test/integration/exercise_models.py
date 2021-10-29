@@ -17,7 +17,12 @@ if __name__ == "__main__":
     handler.persist_object(sample_type)
     print(sample_type)
 
+    sample_item = Item(collection_id=sample_collection.collection_id, item_type_id=sample_type.item_type_id)
+    handler.persist_object(sample_item)
+    print(sample_item)
+
     # Due to FK constraints, order matters here
+    handler.delete_object(sample_item)
     handler.delete_object(sample_collection)
     handler.delete_object(sample_type)
     handler.delete_object(sample_client)
