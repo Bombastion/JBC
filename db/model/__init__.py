@@ -1,5 +1,4 @@
-import sqlalchemy as sa
-
-engine = sa.create_engine("postgresql://jbc:jbc@localhost:5432/jbc")
-connection = engine.connect()
-metadata = sa.MetaData()
+from db.model.client import Client
+from db.model.item_collection import ItemCollection
+from db.model.item_type import ItemType
+from db.model.item import Item

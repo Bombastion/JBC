@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS item_collection (
 
 CREATE TABLE IF NOT EXISTS item_type (
     item_type_id uuid DEFAULT uuid_generate_v4(),
-    name VARCHAR NOT NULL,
+    name VARCHAR NOT NULL UNIQUE,
     PRIMARY KEY(item_type_id) 
 );
 
