@@ -14,6 +14,7 @@ py_binary(
     ],
     deps = [
         "//db/model:models",
+        "//db/model:handler",
         requirement("Flask"),
     ],
 )
