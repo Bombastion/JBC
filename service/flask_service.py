@@ -1,11 +1,32 @@
-from flask import Flask, render_template, request
 import logging
-from db.model.item_type import ItemType
 
-from db.model.model_handler import ItemTypeQuery, ModelHandler
+from flask import Flask, json, render_template, request
+from werkzeug.exceptions import HTTPException, BadRequest
+
+from db.model.client import Client
+from db.model.item_type import ItemType
+from db.model.model_handler import ClientQuery, ItemTypeQuery, ModelHandler
 from db.model.sqlalchemy_base import SessionFactory
+from service.exception import(
+   InvalidArgument,
+)
 
 app = Flask(__name__)
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
+
 
 @app.route('/')
 def landing_page():
@@ -20,6 +41,18 @@ def add_new_item_type():
    handler.persist_object(new_type)
 
    return new_type.item_type_id
+
+@app.route('/add_new_client', methods=['POST'])
+def add_new_client():
+   handler = ModelHandler(SessionFactory)
+   name, email = request.form['new_client_name'], request.form['new_client_email']
+   existing_clients = handler.list_clients(ClientQuery(email=email))
+   if len(existing_clients) > 0:
+      raise InvalidArgument(f"Client with the provided email {email} already exists with ID {existing_clients[0].client_id}!")
+   new_client = Client(name=name, email=email)
+   handler.persist_object(new_client)
+
+   return new_client.client_id
 
 @app.route('/get_item_types', methods=['GET'])
 def get_item_types():

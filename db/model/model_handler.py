@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, List
 
+from sqlalchemy import func
 from sqlalchemy.sql.expression import text
 
 from db.model import Client, Item, ItemCollection, ItemType
@@ -10,6 +11,11 @@ class ItemTypeQuery:
     def __init__(self, ids: List[str]=None, text_search: str = None):
         self.ids = ids
         self.text_search = text_search
+
+class ClientQuery:
+    def __init__(self, name: str=None, email: str = None):
+        self.name = name
+        self.email = email
 
 class ModelHandler:
     def __init__(self, session_factory):
@@ -35,4 +41,14 @@ class ModelHandler:
         if query.text_search:
             criteria.append(ItemType.name.match(query.text_search))
 
-        return session.query(ItemType).filter(*session).order_by(ItemType.item_type_id).all()
+        return session.query(ItemType).filter(*criteria).order_by(ItemType.item_type_id).all()
+
+    def list_clients(self, query: ClientQuery) -> List[Client]:
+        session = self.session_factory()
+        criteria = []
+        if query.name:
+            criteria.append(func.lower(Client.name) == func.lower(query.name))
+        if query.email:
+            criteria.append(func.lower(Client.email) == func.lower(query.email))
+
+        return session.query(Client).filter(*criteria).order_by(Client.name).all()

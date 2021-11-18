@@ -19,13 +19,16 @@
 <title>JBC</title>
 <div id="type_list">
 </div>
+<div id="user_message">
+</div>
 <br/>
-Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/>
+Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/><br/>
+Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> <input type="submit" value="Add User" id="add_new_user_button"/>
 <script>
     // Populate page elements
-    populate_type_list()
+    populate_type_list();
     
-    // Register submit for click handler
+    // Register submit for add item button
     $("#add_new_type_button").click(function(){
         var name = $("#new_item_type_name").val();
         var producer = $("#new_item_type_producer").val();
@@ -39,7 +42,26 @@ Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Man
                 populate_type_list()
             },
             error: function(response) {
-                console.log("Failed call to /add_new_item_type" + response)
+                console.log("Failed call to /add_new_item_type: \n" + response.responseJSON.description)
+            }
+        });
+    });
+
+    // Register submit for add user button
+    $("#add_new_user_button").click(function(){
+        var name = $("#new_client_name").val();
+        var producer = $("#new_client_email").val();
+        
+        $.ajax({
+            url: "/add_new_client",
+            type: "post",
+            data: {"new_client_name": name, "new_client_email": producer},
+            success: function(response) {
+                console.log("Added new client with ID " + response);
+            },
+            error: function(response) {
+                recent_err = response
+                console.log("Failed call to /add_new_client: \n" + response.responseJSON.description)
             }
         });
     });
