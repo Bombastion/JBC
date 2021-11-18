@@ -1,9 +1,46 @@
 <!doctype html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function populate_type_list(){
+            $.ajax({
+                url: "/get_item_types",
+                type: "get",
+                success: function(response) {
+                    $("#type_list").html(response)
+                },
+                error: function(response) {
+                    console.log("Failed to retrieve /get_item_types:" + response)
+                }
+            })
+        }
+    </script>
+</head>
 <title>JBC</title>
-<ul>
-{% for item_type in item_types %}
-<li>{{ item_type.name }}</li>
-{% endfor %}
+<div id="type_list">
+</div>
 <br/>
-<input type="text" id="new_beer"/> <button type="button">Add Beer</button>
-</ul>
+Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/>
+<script>
+    // Populate page elements
+    populate_type_list()
+    
+    // Register submit for click handler
+    $("#add_new_type_button").click(function(){
+        var name = $("#new_item_type_name").val();
+        var producer = $("#new_item_type_producer").val();
+        
+        $.ajax({
+            url: "/add_new_item_type",
+            type: "post",
+            data: {"new_item_type_name": name, "new_item_type_producer": producer},
+            success: function(response) {
+                console.log("Added item type with ID " + response);
+                populate_type_list()
+            },
+            error: function(response) {
+                console.log("Failed call to /add_new_item_type" + response)
+            }
+        });
+    });
+</script>
