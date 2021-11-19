@@ -5,6 +5,7 @@ from werkzeug.exceptions import HTTPException, BadRequest
 from db.model import client
 
 from db.model.client import Client
+from db.model.item import Item
 from db.model.item_collection import ItemCollection
 from db.model.item_type import ItemType
 from db.model.model_handler import ClientQuery, CollectionQuery, ItemTypeQuery, ModelHandler
@@ -37,8 +38,8 @@ def landing_page():
 
 @app.route('/add_new_item_type', methods=['POST'])
 def add_new_item_type():
-   handler = ModelHandler(SessionFactory)
    name, producer = request.form['new_item_type_name'], request.form['new_item_type_producer']
+   handler = ModelHandler(SessionFactory)
    new_type = ItemType(name=name, producer=producer)
    handler.persist_object(new_type)
 
@@ -94,6 +95,29 @@ def get_collections():
    return jsonify(
       collections=[collection.to_dict() for collection in matching_collections],
    )
+
+@app.route('/add_item_to_collection', methods=['POST'])
+def add_item_to_collection():
+   collection_id = request.form['collection_id']
+   quantity = request.form['quantity']
+   
+   item_type_id = request.form.get('item_type_id', None)
+
+   handler = ModelHandler(SessionFactory)
+   # If the item type is not specified, add a new item
+   if not item_type_id:
+      name, producer = request.form['new_item_type_name'], request.form['new_item_type_producer']
+      handler = ModelHandler(SessionFactory)
+      new_type = ItemType(name=name, producer=producer)
+      handler.persist_object(new_type)
+
+      item_type_id = new_type.item_type_id
+   
+   new_item = Item(collection_id=collection_id, quantity=quantity, item_type_id=item_type_id)
+   handler.persist_object(new_item)
+
+   return new_item.to_dict()
+
 
 if __name__ == '__main__':
    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', encoding='utf-8', level=logging.DEBUG, )
