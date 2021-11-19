@@ -2,7 +2,6 @@
 <head>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        var some_resp;
         function populate_type_list(){
             $.ajax({
                 url: "/get_item_types",
@@ -20,16 +19,28 @@
                 }
             })
         }
+
+        function populate_collection_view(collections){
+            $("#current_collections").html("")
+
+            for (i = 0; i < collections.length; i++) {
+                $("#current_collections").append("<h1>" + collections[i].name + "</h1>");
+            }
+            
+        }
     </script>
 </head>
 <title>JBC</title>
 <div id="type_list">
+</div>
+<div id="current_collections">
 </div>
 <div id="user_message">
 </div>
 <br/>
 Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/><br/>
 Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> <input type="submit" value="Add User" id="add_new_user_button"/><br/>
+Name: <input type="text" name="new_collection_name" id="new_collection_name"/> <input type="submit" value="Add Collection" id="add_collection_button"/><br/>
 <input type="submit" value="Get Collections" id="get_collections_button"/><br/>
 <script>
     // Populate page elements
@@ -45,7 +56,7 @@ Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <i
             type: "post",
             data: {"new_item_type_name": name, "new_item_type_producer": producer},
             success: function(response) {
-                console.log("Added item type with ID " + response);
+                console.log("Added item type with ID " + response.item_type_id);
                 populate_type_list()
             },
             error: function(response) {
@@ -64,11 +75,30 @@ Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <i
             type: "post",
             data: {"new_client_name": name, "new_client_email": producer},
             success: function(response) {
-                console.log("Added new client with ID " + response);
+                console.log("Added new client with ID " + response.client_id);
             },
             error: function(response) {
                 recent_err = response
                 console.log("Failed call to /add_new_client: \n" + response.responseJSON.description)
+            }
+        });
+    });
+
+    // Register submit for add collection button
+    $("#add_collection_button").click(function(){
+        var name = $("#new_collection_name").val();
+        var client_id = "4bbf14ee-6f59-427c-9718-c39a608e8aca";
+        
+        $.ajax({
+            url: "/add_new_collection",
+            type: "post",
+            data: {"new_collection_name": name, "client_id": client_id},
+            success: function(response) {
+                console.log("Added new collection with ID " + response.collection_id);
+            },
+            error: function(response) {
+                recent_err = response
+                console.log("Failed call to /add_new_collection: \n" + response.responseJSON.description)
             }
         });
     });
@@ -82,11 +112,11 @@ Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <i
             type: "get",
             data: {"client_id": client_id},
             success: function(response) {
-                some_resp = response;
+                populate_collection_view(response.collections);
             },
             error: function(response) {
                 recent_err = response
-                console.log("Failed call to /add_new_client: \n" + response.responseJSON.description)
+                console.log("Failed call to /get_collections: \n" + response.responseJSON.description)
             }
         });
     });

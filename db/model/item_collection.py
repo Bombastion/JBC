@@ -1,5 +1,5 @@
-import json
 from typing import Dict
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 

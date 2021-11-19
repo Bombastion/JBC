@@ -67,6 +67,6 @@ class ModelHandler:
         if query.client_ids:
             criteria.append(ItemCollection.client_id.in_(query.client_ids))
         if query.name:
-            criteria.append(ItemCollection.name.match(query.name))
+            criteria.append(func.lower(ItemCollection.name) == func.lower(query.name))
 
         return session.query(ItemCollection).filter(*criteria).order_by(ItemCollection.name).all()

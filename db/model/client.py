@@ -1,3 +1,5 @@
+from typing import Dict
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -11,3 +13,10 @@ class Client(Base):
 
     def __repr__(self) -> str:
         return f"Client(client_id={self.client_id}, name={self.name}, email={self.email})"
+
+    def to_dict(self) -> Dict:
+        return {
+            "client_id": str(self.client_id),
+            "email": self.email,
+            "name": self.name,
+        }
