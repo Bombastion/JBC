@@ -1,11 +1,12 @@
 import logging
 
-from flask import Flask, json, render_template, request
+from flask import Flask, json, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException, BadRequest
+from db.model import client
 
 from db.model.client import Client
 from db.model.item_type import ItemType
-from db.model.model_handler import ClientQuery, ItemTypeQuery, ModelHandler
+from db.model.model_handler import ClientQuery, CollectionQuery, ItemTypeQuery, ModelHandler
 from db.model.sqlalchemy_base import SessionFactory
 from service.exception import(
    InvalidArgument,
@@ -59,8 +60,25 @@ def get_item_types():
    handler = ModelHandler(SessionFactory)
    query = ItemTypeQuery()
    item_types = handler.list_item_types(query)
-   return render_template('type_list.html', item_types=item_types)
+   return jsonify(item_types=[item_type.to_dict() for item_type in item_types])
 
+@app.route('/get_collections', methods=['GET'])
+def get_collections():
+   client_id = request.form.get('client_id', None)
+   collection_id = request.form.get('collection_id', None)
+
+   handler = ModelHandler(SessionFactory)
+   query = CollectionQuery()
+   if collection_id:
+      query.ids = [collection_id]
+   if client_id:
+      query.client_ids = [client_id]
+
+   matching_collections = handler.list_collections(query)
+
+   return jsonify(
+      collections=matching_collections
+   )
 
 if __name__ == '__main__':
    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', encoding='utf-8', level=logging.DEBUG, )

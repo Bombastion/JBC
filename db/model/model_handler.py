@@ -8,14 +8,20 @@ from sqlalchemy.sql.expression import text
 from db.model import Client, Item, ItemCollection, ItemType
 
 class ItemTypeQuery:
-    def __init__(self, ids: List[str]=None, text_search: str = None):
+    def __init__(self, ids: List[str]=None, text_search: str=None):
         self.ids = ids
         self.text_search = text_search
 
 class ClientQuery:
-    def __init__(self, name: str=None, email: str = None):
+    def __init__(self, name: str=None, email: str=None):
         self.name = name
         self.email = email
+
+class CollectionQuery:
+    def __init__(self, ids: List[str]=None, client_ids: List[str]=None, name: str=None):
+        self.ids = ids
+        self.client_ids = client_ids
+        self.name = name
 
 class ModelHandler:
     def __init__(self, session_factory):
@@ -52,3 +58,15 @@ class ModelHandler:
             criteria.append(func.lower(Client.email) == func.lower(query.email))
 
         return session.query(Client).filter(*criteria).order_by(Client.name).all()
+
+    def list_collections(self, query: CollectionQuery) -> List[ItemCollection]:
+        session = self.session_factory()
+        criteria = []
+        if query.ids:
+            criteria.append(ItemCollection.collection_id.in_(query.ids))
+        if query.client_ids:
+            criteria.append(ItemCollection.client_id.in_(query.client_ids))
+        if query.name:
+            criteria.append(ItemCollection.name.match(query.name))
+
+        return session.query(ItemCollection).filter(*criteria).order_by(ItemCollection.name).all()

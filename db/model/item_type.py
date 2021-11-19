@@ -1,3 +1,5 @@
+from typing import Dict
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -11,4 +13,11 @@ class ItemType(Base):
     producer = sa.Column(sa.Text, nullable=True)
 
     def __repr__(self) -> str:
-        return f"ItemType(item_type_id={self.item_type_id}, name={self.name})"
+        return f"ItemType(item_type_id={self.item_type_id}, name={self.name}, producer={self.producer})"
+
+    def to_dict(self) -> Dict:
+        return {
+            "item_type_id": str(self.item_type_id),
+            "name": self.name,
+            "producer": self.producer,
+        }
