@@ -1,3 +1,5 @@
+from typing import Dict
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -10,4 +12,11 @@ class ItemCollection(Base):
     name = sa.Column(sa.Text, nullable=False)
 
     def __repr__(self) -> str:
-        return f"ItemCollection(collection_id={self.client_id}, client_id={self.client_id}, name={self.name})"
+        return f"ItemCollection(collection_id={self.collection_id}, client_id={self.client_id}, name={self.name})"
+
+    def to_dict(self) -> Dict:
+        return {
+            "collection_id": str(self.collection_id),
+            "client_id": str(self.client_id),
+            "name": self.name,
+        }
