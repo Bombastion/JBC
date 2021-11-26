@@ -12,6 +12,11 @@ class ItemTypeQuery:
         self.ids = ids
         self.text_search = text_search
 
+class ItemQuery:
+    def __init__(self, ids: List[str]=None, collection_ids: List[str]=None):
+        self.ids = ids
+        self.collection_ids = collection_ids
+
 class ClientQuery:
     def __init__(self, name: str=None, email: str=None):
         self.name = name
@@ -38,6 +43,16 @@ class ModelHandler:
         session = self.session_factory()
         session.delete(object)
         session.commit()
+
+    def list_items(self, query: ItemQuery) -> List[Item]:
+        session = self.session_factory()
+        criteria = []
+        if query.ids:
+            criteria.append(Item.item_id.in_(query.ids))
+        if query.collection_ids:
+            criteria.append(Item.collection_id.in_(query.collection_ids))
+
+        return session.query(Item).filter(*criteria).order_by(Item.item_id).all()
 
     def list_item_types(self, query: ItemTypeQuery) -> List[ItemType]:
         session = self.session_factory()

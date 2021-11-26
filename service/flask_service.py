@@ -8,7 +8,7 @@ from db.model.client import Client
 from db.model.item import Item
 from db.model.item_collection import ItemCollection
 from db.model.item_type import ItemType
-from db.model.model_handler import ClientQuery, CollectionQuery, ItemTypeQuery, ModelHandler
+from db.model.model_handler import ClientQuery, CollectionQuery, ItemQuery, ItemTypeQuery, ModelHandler
 from db.model.sqlalchemy_base import SessionFactory
 from service.exception import(
    InvalidArgument,
@@ -69,6 +69,21 @@ def add_new_collection():
 
    return new_collection.to_dict()
 
+@app.route('/get_items', methods=['GET'])
+def get_items():
+   collection_id = request.args.get('collection_id', None)
+   logging.info(f"Got request with id {collection_id}")
+
+   handler = ModelHandler(SessionFactory)
+   query = ItemQuery()
+   query.collection_ids = [collection_id]
+
+   items = handler.list_items(query)
+   logging.info(f"Found {len(items)} total items")
+   return jsonify(
+      items=[item.to_dict() for item in items],
+   )
+
 @app.route('/get_item_types', methods=['GET'])
 def get_item_types():
    handler = ModelHandler(SessionFactory)
@@ -80,8 +95,8 @@ def get_item_types():
 
 @app.route('/get_collections', methods=['GET'])
 def get_collections():
-   client_id = request.form.get('client_id', None)
-   collection_id = request.form.get('collection_id', None)
+   client_id = request.args.get('client_id', None)
+   collection_id = request.args.get('collection_id', None)
 
    handler = ModelHandler(SessionFactory)
    query = CollectionQuery()

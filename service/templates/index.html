@@ -3,13 +3,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function populate_type_list(){
-            $.ajax({
+            jQuery.ajax({
                 url: "/get_item_types",
                 type: "get",
                 success: function(response) {
-                    $("#item_type_options").html("")
+                    jQuery("#item_type_options").html("")
                     for (i = 0; i < response.item_types.length; i++) {
-                        $("#item_type_options").append("<option value=\"" + response.item_types[i].item_type_id + "\">" + response.item_types[i].producer + " " + response.item_types[i].name + "</option>");
+                        jQuery("#item_type_options").append("<option value=\"" + response.item_types[i].item_type_id + "\">" + response.item_types[i].producer + " " + response.item_types[i].name + "</option>");
                     }
                 },
                 error: function(response) {
@@ -18,24 +18,46 @@
             })
         }
 
-        function populate_collection_views(collections){
-            $("#collection_options").html("")
-            $("#current_collections").html("")
+        async function get_collection_items(collection_id) {
+            var items;
+
+            await jQuery.ajax({
+                url:"/get_items",
+                type: "get",
+                data: {"collection_id": collection_id},
+                success: function(response) {
+                    items = response.items;
+                },
+                error: function(response) {
+                    console.log("Failed call to /get_items: \n" + response.responseJSON.description);
+                }
+            });
+
+            return items;
+        }
+
+        async function populate_collection_views(collections){
+            jQuery("#collection_options").html("")
+            jQuery("#current_collections").html("")
 
             for (collection_index = 0; collection_index < collections.length; collection_index++) {
                 current_collection = collections[collection_index];
-                $("#current_collections").append("<h1>" + current_collection.name + "</h1>");
-                $("#current_collections").append("<table>");
-                current_table = $("#current_collections table:eq(" + i + ")").append("<tr><th>Name</th><th>Amount</th></tr>");
-                $("#collection_options").append("<option value=\"" + current_collection.collection_id + "\">" + current_collection.name + "</option>");
+                jQuery("#current_collections").append("<h1>" + current_collection.name + "</h1>");
+                jQuery("#current_collections").append("<table>");
+                current_table = jQuery("#current_collections table:eq(" + collection_index + ")");
+                current_table.append("<tr><th>Name</th><th>Amount</th></tr>");
+                items_for_collection = await get_collection_items(current_collection.collection_id);
+                for (item_index = 0; item_index < items_for_collection.length; item_index++) {
+                    current_table.append("<tr><td>" + items_for_collection[item_index].item_id + "</td><td>" + items_for_collection[item_index].quantity + "</td></tr>");
+                }
+                jQuery("#collection_options").append("<option value=\"" + current_collection.collection_id + "\">" + current_collection.name + "</option>");
             }
-            
         }
         
         function retrieve_collections() {
-            var client_id = "4bbf14ee-6f59-427c-9718-c39a608e8aca";
+            var client_id = "58688c37-1aa3-4349-9611-815419ea7662";
         
-            $.ajax({
+            jQuery.ajax({
                 url: "/get_collections",
                 type: "get",
                 data: {"client_id": client_id},
@@ -77,11 +99,11 @@ Amount:
     retrieve_collections();
     
     // Register submit for add item button
-    $("#add_new_type_button").click(function(){
-        var name = $("#new_item_type_name").val();
-        var producer = $("#new_item_type_producer").val();
+    jQuery("#add_new_type_button").click(function(){
+        var name = jQuery("#new_item_type_name").val();
+        var producer = jQuery("#new_item_type_producer").val();
         
-        $.ajax({
+        jQuery.ajax({
             url: "/add_new_item_type",
             type: "post",
             data: {"new_item_type_name": name, "new_item_type_producer": producer},
@@ -96,11 +118,11 @@ Amount:
     });
 
     // Register submit for add user button
-    $("#add_new_user_button").click(function(){
-        var name = $("#new_client_name").val();
-        var producer = $("#new_client_email").val();
+    jQuery("#add_new_user_button").click(function(){
+        var name = jQuery("#new_client_name").val();
+        var producer = jQuery("#new_client_email").val();
         
-        $.ajax({
+        jQuery.ajax({
             url: "/add_new_client",
             type: "post",
             data: {"new_client_name": name, "new_client_email": producer},
@@ -115,11 +137,11 @@ Amount:
     });
 
     // Register submit for add collection button
-    $("#add_collection_button").click(function(){
-        var name = $("#new_collection_name").val();
-        var client_id = "4bbf14ee-6f59-427c-9718-c39a608e8aca";
+    jQuery("#add_collection_button").click(function(){
+        var name = jQuery("#new_collection_name").val();
+        var client_id = "58688c37-1aa3-4349-9611-815419ea7662";
         
-        $.ajax({
+        jQuery.ajax({
             url: "/add_new_collection",
             type: "post",
             data: {"new_collection_name": name, "client_id": client_id},
@@ -134,17 +156,17 @@ Amount:
     });
 
     // Register submit for get collection
-    $("#get_collections_button").click(function(){
+    jQuery("#get_collections_button").click(function(){
         retrieve_collections()
     });
 
     // Register submit for add item to collection
-    $("#add_to_collection_button").click(function(){
-        var item_type_id = $("#item_type_options").val();
-        var collection_id = $("#collection_options").val();
-        quantity = $("#new_inventory_amount").val()
+    jQuery("#add_to_collection_button").click(function(){
+        var item_type_id = jQuery("#item_type_options").val();
+        var collection_id = jQuery("#collection_options").val();
+        quantity = jQuery("#new_inventory_amount").val()
 
-        $.ajax({
+        jQuery.ajax({
             url: "/add_item_to_collection",
             type: "post",
             data: {
@@ -153,7 +175,7 @@ Amount:
                 "quantity": quantity,
             },
             success: function(response) {
-                console.log("Added new item to collection");
+                console.log("Added new item to collection: " + response.item_id);
                 retrieve_collections();
             },
             error: function(response) {
