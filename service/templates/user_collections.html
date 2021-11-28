@@ -1,0 +1,75 @@
+<!doctype html>
+<head>
+    <title>JBC Home Cellar Tracker</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/main.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts/collections.js') }}"></script>
+    <script>
+        // Default User ID until we get actual auth going
+        var user_id = "58688c37-1aa3-4349-9611-815419ea7662";
+        
+        async function load_cellar_div(cellar_list, selected_index) {
+            if (cellar_list.length > 0) {
+                jQuery("#current_cellar_name").html(`<h1>${cellar_list[selected_index].name}</h1>`);
+                jQuery(".collection_select").empty();
+                for (cellar_index = 0; cellar_index < cellar_list.length; cellar_index++) {
+                    jQuery(".collection_select")
+                        .append(`<option value="${cellar_list[cellar_index].collection_id}">${cellar_list[cellar_index].name}</option>`);
+                }
+
+                jQuery(".collection_select").prop("selectedIndex", selected_index);
+                retrieve_items(cellar_list[selected_index].collection_id).then(
+                    async function success(items) {
+                        jQuery("#item_list_div").empty();
+                        jQuery("#item_list_div").append("<table class='beers_table center'>");
+                        current_table = jQuery("#item_list_div .beers_table");
+
+                        current_table.append("<tr><th>Name</th><th>Brewery</th><th>Count</th></tr>");
+                        for (const current_item of items) {
+                            console.log(current_item);
+                            item_types_for_item = await retrieve_item_types(current_item.item_type_id);
+                            if (item_types_for_item.length > 1) {
+                                console.warn(`Found more than one item type for item with ID ${current_item.item_id}`);
+                                console.warn(item_types_for_item);
+                            }
+                            item_type = item_types_for_item[0];
+                            current_table.append(`<tr><td>${item_type.name}</td><td>${item_type.producer}</td><td>${current_item.quantity}</td></tr>`);
+                        }
+                    }
+                )
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="current_cellar_div">
+        <div id="current_cellar_name"></div>
+        <div id="cellar_select_div">
+            My Cellars: <select id="collection_options" name="collection_options" class="collection_select"/>
+            <input type="button" value="Go" class="view_collection_button button"/>
+        </div>
+        <br/>
+        <div id="item_list_div">
+        </div>
+    </div>
+</body>
+
+<script>
+    var cellar_list;
+
+    // Load the initial view
+    retrieve_collections(user_id).then(
+        function success(results) {
+            cellar_list = results;
+            load_cellar_div(cellar_list, 0);
+        }, null
+    );
+    
+
+    // Register retrieve collection view button
+    // Register submit for add item button
+    jQuery(".view_collection_button").click(function(){
+        load_cellar_div(cellar_list, jQuery(".collection_select").prop("selectedIndex"));
+    });
+</script>

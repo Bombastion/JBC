@@ -1,0 +1,28 @@
+body {
+    background-color: #222222;
+    text-align: center;
+    color: #CCCCCC;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.beers_table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+}
+
+.beers_table td, .beers_table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.beers_table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: purple;
+    color: white;
+}

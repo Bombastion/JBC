@@ -7,6 +7,11 @@ filegroup(
 )
 
 filegroup(
+    name = "javascript",
+    srcs = glob(["static/scripts/*"]),
+)
+
+filegroup(
     name = "styles",
     srcs = glob(["static/styles/*"]),
 )
@@ -23,6 +28,7 @@ py_binary(
     name = "flask_service",
     srcs = ["flask_service.py"],
     data = [
+        ":javascript",
         ":styles",
         ":templates",
     ],

@@ -35,6 +35,9 @@ def handle_exception(e):
 def landing_page():
    return render_template('index.html')
 
+@app.route('/myCellars')
+def user_cellars_page():
+   return render_template('user_collections.html')
 
 @app.route('/add_new_item_type', methods=['POST'])
 def add_new_item_type():
@@ -79,7 +82,6 @@ def get_items():
    query.collection_ids = [collection_id]
 
    items = handler.list_items(query)
-   logging.info(f"Found {len(items)} total items")
    return jsonify(
       items=[item.to_dict() for item in items],
    )
@@ -88,6 +90,9 @@ def get_items():
 def get_item_types():
    handler = ModelHandler(SessionFactory)
    query = ItemTypeQuery()
+   item_type_id = request.args.get('item_type_id', None)
+   query.ids = [item_type_id]
+
    item_types = handler.list_item_types(query)
    return jsonify(
       item_types=[item_type.to_dict() for item_type in item_types],

@@ -45,7 +45,7 @@
             for (collection_index = 0; collection_index < collections.length; collection_index++) {
                 current_collection = collections[collection_index];
                 jQuery("#current_collections").append("<h1>" + current_collection.name + "</h1>");
-                jQuery("#current_collections").append("<table>");
+                jQuery("#current_collections").append("<table class='center'>");
                 current_table = jQuery("#current_collections table:eq(" + collection_index + ")");
                 current_table.append("<tr><th>Name</th><th>Amount</th></tr>");
                 items_for_collection = await get_collection_items(current_collection.collection_id);
