@@ -26,3 +26,9 @@ body {
     background-color: purple;
     color: white;
 }
+
+.add_beer_div {
+    border: 1px solid #ddd;
+    display: inline-block;
+    padding: 3px;
+}

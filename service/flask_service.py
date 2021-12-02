@@ -91,9 +91,11 @@ def get_item_types():
    handler = ModelHandler(SessionFactory)
    query = ItemTypeQuery()
    item_type_id = request.args.get('item_type_id', None)
-   query.ids = [item_type_id]
+   if item_type_id:
+      query.ids = [item_type_id]
 
    item_types = handler.list_item_types(query)
+   logging.info(f"Found {len(item_types)}")
    return jsonify(
       item_types=[item_type.to_dict() for item_type in item_types],
    )
