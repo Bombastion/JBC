@@ -3,7 +3,7 @@
     <title>JBC Home Cellar Tracker</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/main.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ url_for('static', filename='scripts/collections.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/server_calls.js') }}"></script>
     <script>
         // Default User ID until we get actual auth going
         var user_id = "58688c37-1aa3-4349-9611-815419ea7662";
@@ -18,15 +18,16 @@
         async function load_cellar_div(cellar_list, selected_index) {
             if (cellar_list.length > 0) {
                 jQuery("#current_cellar_name").html(`<h1>${cellar_list[selected_index].name}</h1>`);
-                jQuery(".view_cellar_celect").empty();
+                jQuery(".view_cellar_select, .add_beer_cellars").empty();
+                
                 for (cellar_index = 0; cellar_index < cellar_list.length; cellar_index++) {
-                    jQuery(".view_cellar_celect")
+                    jQuery(".view_cellar_select")
                         .append(`<option value="${cellar_list[cellar_index].collection_id}">${cellar_list[cellar_index].name}</option>`);
                     jQuery(".add_beer_cellars")
                         .append(`<option value="${cellar_list[cellar_index].collection_id}">${cellar_list[cellar_index].name}</option>`);
                 }
 
-                jQuery(".view_cellar_celect").prop("selectedIndex", selected_index);
+                jQuery(".view_cellar_select, .add_beer_cellars").prop("selectedIndex", selected_index);
                 retrieve_items(cellar_list[selected_index].collection_id).then(
                     async function success(items) {
                         jQuery("#item_list_div").empty();
@@ -63,7 +64,7 @@
     <div id="current_cellar_div">
         <div id="current_cellar_name"></div>
         <div id="cellar_select_div">
-            My Cellars: <select id="collection_options" name="collection_options" class="cellar_select view_cellar_celect"></select>
+            My Cellars: <select id="collection_options" name="collection_options" class="cellar_select view_cellar_select"></select>
             <input type="button" value="Go" class="view_collection_button button"/>
         </div>
     </div>
@@ -72,6 +73,7 @@
         <div class="add_beer_div">
             Beer to add: <select class="beer_select add_beer_types"></select><br/>
             Add to cellar: <select class="cellar_select add_beer_cellars"></select><br/>
+            Amount: <input type="text" class="amount_input add_beer_amount"/>
             <input type="button" value="Add Beer" class="add_beer_button"/>
         </div>
     </div>
@@ -83,7 +85,7 @@
 <script>
     function handle_collections_results(results) {
         cellar_list = results;
-        load_cellar_div(cellar_list, 0);
+        load_cellar_div(cellar_list, Math.max(jQuery(".view_cellar_select").prop("selectedIndex"), 0));
     }
 
     function handle_item_types_results(results) {
@@ -103,7 +105,7 @@
 
     // Register retrieve collection view button
     jQuery(".view_collection_button").click(function(){
-        load_cellar_div(cellar_list, jQuery(".view_cellar_celect").prop("selectedIndex"));
+        load_cellar_div(cellar_list, jQuery(".view_cellar_select").prop("selectedIndex"));
     });
 
     // Register behavior for add button
@@ -111,5 +113,18 @@
         jQuery(".add_beer_div_wrapper").toggle();
         toggle_div_values_index = (toggle_div_values_index + 1) % toggle_div_values.length;
         jQuery(".toggle_add_beer_div").prop("value", toggle_div_values[toggle_div_values_index]);
+    });
+
+    // Register the button to actually make the add_item_to_collection call
+    jQuery(".add_beer_button").click(async function(){
+        item_type_id = jQuery(".add_beer_types").val();
+        collection_id = jQuery(".add_beer_cellars").val();
+        amount = jQuery(".add_beer_amount").val();
+
+        // TODO: Handle case of creating new item, new cellar
+        await add_item_to_collection(item_type_id, collection_id, amount);
+        retrieve_collections(user_id).then(
+            handle_collections_results, null
+        );
     });
 </script>
