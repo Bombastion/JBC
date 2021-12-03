@@ -23,14 +23,19 @@ body {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: left;
-    background-color: purple;
+    background-color: #800080;
     color: white;
+}
+
+.beers_table tr:nth-child(odd) {
+    background-color: #444444;
 }
 
 .add_beer_div {
     border: 1px solid #ddd;
     display: inline-block;
     padding: 3px;
+    background-color: #400040;
 }
 
 .amount_input {
