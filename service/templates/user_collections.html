@@ -11,21 +11,35 @@
         // Initialize page variables
         var cellar_list;
         var item_types;
+
+        var new_cellar_select_index = 0;
+        const new_cellar_value = "--Add To New Cellar--";
+        var added_cellar_label;
         
         toggle_div_values = ["+", "-"]
         toggle_div_values_index = 0
         
         async function load_cellar_div(cellar_list, selected_index) {
             if (cellar_list.length > 0) {
-                jQuery("#current_cellar_name").html(`<h1>${cellar_list[selected_index].name}</h1>`);
                 jQuery(".view_cellar_select, .add_beer_cellars").empty();
                 
                 for (cellar_index = 0; cellar_index < cellar_list.length; cellar_index++) {
+                    option_label = `${cellar_list[cellar_index].name}`
+                    // If we've just added a new cellar, jump to it
+                    if (added_cellar_label == option_label) {
+                        selected_index = cellar_index;
+                    }
                     jQuery(".view_cellar_select")
-                        .append(`<option value="${cellar_list[cellar_index].collection_id}">${cellar_list[cellar_index].name}</option>`);
+                        .append(`<option value="${cellar_list[cellar_index].collection_id}" label="${option_label}">${option_label}</option>`);
                     jQuery(".add_beer_cellars")
-                        .append(`<option value="${cellar_list[cellar_index].collection_id}">${cellar_list[cellar_index].name}</option>`);
+                        .append(`<option value="${cellar_list[cellar_index].collection_id}" label="${option_label}">${option_label}</option>`);
                 }
+                
+                jQuery("#current_cellar_name").html(`<h1>${cellar_list[selected_index].name}</h1>`);
+
+
+                jQuery(".add_beer_cellars").append(`<option>${new_cellar_value}</option>`);
+                new_cellar_select_index = cellar_list.length;
 
                 jQuery(".view_cellar_select, .add_beer_cellars").prop("selectedIndex", selected_index);
                 retrieve_items(cellar_list[selected_index].collection_id).then(
@@ -47,6 +61,9 @@
                     }
                 )
             }
+
+            // Unset the label to avoid picking this index every time
+            added_cellar_label = undefined;
         }
         
         function populate_item_types(item_types) {
@@ -71,9 +88,12 @@
     <input type="button" value="+" class="add_button toggle_add_beer_div" />
     <div class="add_beer_div_wrapper" hidden="true">
         <div class="add_beer_div">
-            Beer to add: <select class="beer_select add_beer_types"></select><br/>
-            Add to cellar: <select class="cellar_select add_beer_cellars"></select><br/>
-            Amount: <input type="text" class="amount_input add_beer_amount"/>
+            <text>Beer to add: </text><select class="beer_select add_beer_types"></select><br/>
+            <text>Add to cellar: </text><select class="cellar_select add_beer_cellars"></select><br/>
+            <div class="add_cellar_div" hidden="true">
+                <text>New Cellar Name: </text><input type="text" class="text_input add_cellar_name"/><br/><br/>
+            </div>
+            <text>Amount: </text><input type="text" class="amount_input add_beer_amount"/><br/><br/>
             <input type="button" value="Add Beer" class="add_beer_button"/>
         </div>
     </div>
@@ -117,14 +137,31 @@
 
     // Register the button to actually make the add_item_to_collection call
     jQuery(".add_beer_button").click(async function(){
-        item_type_id = jQuery(".add_beer_types").val();
-        collection_id = jQuery(".add_beer_cellars").val();
-        amount = jQuery(".add_beer_amount").val();
+        var item_type_id = jQuery(".add_beer_types").val();
+        var collection_id = jQuery(".add_beer_cellars").val();
+        const amount = jQuery(".add_beer_amount").val();
 
-        // TODO: Handle case of creating new item, new cellar
+        if (collection_id == new_cellar_value) {
+            const new_cellar_name = jQuery(".add_cellar_name").val();
+            new_cellar = await add_collection_for_user(user_id, new_cellar_name);
+            collection_id = new_cellar.collection_id;
+            added_cellar_label = new_cellar.name;
+        }
+
+        // TODO: Handle case of creating new item
         await add_item_to_collection(item_type_id, collection_id, amount);
         retrieve_collections(user_id).then(
             handle_collections_results, null
         );
+    });
+
+    // Register the handler for choosing the "new cellar" option from the add list
+    jQuery(".add_beer_cellars").change(function (){
+        if (jQuery(".add_beer_cellars").prop("selectedIndex") == new_cellar_select_index) {
+            jQuery(".add_cellar_div").show();
+        }
+        else {
+            jQuery(".add_cellar_div").hide();
+        }
     });
 </script>

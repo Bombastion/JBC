@@ -38,6 +38,17 @@ body {
     background-color: #400040;
 }
 
+.add_beer_div select, .add_beer_div input {
+    float: right;
+}
+
+.add_beer_div input[type=button] {
+    float: none;
+}
+
+.add_beer_div text {
+    float: left;
+}
 .amount_input {
     width: 2.4em;
 }
