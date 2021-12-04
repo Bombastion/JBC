@@ -120,7 +120,7 @@ def get_collections():
 @app.route('/add_item_to_collection', methods=['POST'])
 def add_item_to_collection():
    collection_id = request.form['collection_id']
-   quantity = request.form['quantity']
+   quantity = int(request.form['quantity'])
 
    if quantity < 1:
       raise InvalidArgument("quantity must be at least 1")
@@ -133,6 +133,28 @@ def add_item_to_collection():
 
    return new_item.to_dict()
 
+@app.route('/modify_item', methods=['POST'])
+def modify_item():
+   new_quantity = int(request.form['new_quantity'])
+   if new_quantity < 0:
+      raise InvalidArgument("quantity must be at least 0")
+   item_id = request.form['item_id']
+
+   handler = ModelHandler(SessionFactory)   
+   query = ItemQuery(ids=[item_id])
+   items = handler.list_items(query)
+   if len(items) != 1:
+      raise InvalidArgument(f"Found more than one item for id {item_id}")
+
+   item_to_modify = items[0]
+   item_to_modify.quantity = new_quantity
+   if new_quantity == 0:
+      handler.delete_object(item_to_modify)
+   else:
+      item_to_modify.quantity = new_quantity
+      handler.persist_object(item_to_modify)
+
+   return item_to_modify.to_dict()
 
 if __name__ == '__main__':
    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', encoding='utf-8', level=logging.DEBUG, )

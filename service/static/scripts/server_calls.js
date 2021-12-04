@@ -132,3 +132,27 @@ async function add_item_to_collection(item_type_id,
 
     return new_item;
 }
+
+async function modify_item(item_id,
+                           new_quantity) {
+    var modified_item;
+
+    await jQuery.ajax({
+        url: "/modify_item",
+        type: "post",
+        data: {
+            "item_id": item_id,
+            "new_quantity": new_quantity,
+        },
+        success: function(response) {
+            modified_item = response; 
+        },
+        error: function(response) {
+            recent_err = response
+            console.log(`Failed call to /modify_item: 
+            ${response.responseJSON.description}`);
+        }
+    });
+
+    return modified_item;
+}
