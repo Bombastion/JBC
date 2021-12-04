@@ -16,14 +16,6 @@ filegroup(
     srcs = glob(["static/styles/*"]),
 )
 
-py_library(
-    name = "server_exceptions",
-    srcs = ["exception.py"],
-    deps = [
-        requirement("Flask"),
-    ]
-)
-
 py_binary(
     name = "flask_service",
     srcs = ["flask_service.py"],
@@ -33,7 +25,6 @@ py_binary(
         ":templates",
     ],
     deps = [
-        ":server_exceptions",
         "//db/model:models",
         "//db/model:handler",
         requirement("Flask"),
