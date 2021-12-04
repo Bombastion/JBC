@@ -1,8 +1,9 @@
 import logging
+import traceback
+import uuid
 
 from flask import Flask, json, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException, BadRequest
-from db.model import client
 
 from db.model.client import Client
 from db.model.item import Item
@@ -10,9 +11,6 @@ from db.model.item_collection import ItemCollection
 from db.model.item_type import ItemType
 from db.model.model_handler import ClientQuery, CollectionQuery, ItemQuery, ItemTypeQuery, ModelHandler
 from db.model.sqlalchemy_base import SessionFactory
-from service.exception import(
-   InvalidArgument,
-)
 
 app = Flask(__name__)
 
@@ -31,15 +29,38 @@ def handle_exception(e):
     return response
 
 
+def entry_exit_logging(func):
+   """
+   Simple error handler that logs errors
+   """
+   def inner_func(*args, **kwargs):
+      request_id = uuid.uuid4()
+      try:
+         logging.info(f"[{request_id}] Entering {func.__name__}")
+         result = func(*args, **kwargs)
+         logging.info(f"[{request_id}] Exiting {func.__name__}")
+         return result
+      except Exception as e:
+         logging.error(f"[{request_id}] Encountered error in {func.__name__}")
+         logging.error(f"[{request_id}] {traceback.format_exc()}")
+         if isinstance(e, ValueError):
+            raise BadRequest(f"[{request_id}] {str(e)}")
+   inner_func.__name__ = f"{func.__name__}_wrapper"
+   return inner_func
+
+
 @app.route('/')
+@entry_exit_logging
 def landing_page():
    return render_template('index.html')
 
 @app.route('/myCellars')
+@entry_exit_logging
 def user_cellars_page():
    return render_template('user_collections.html')
 
 @app.route('/add_new_item_type', methods=['POST'])
+@entry_exit_logging
 def add_new_item_type():
    name, producer = request.form['new_item_type_name'], request.form['new_item_type_producer']
    handler = ModelHandler(SessionFactory)
@@ -49,33 +70,36 @@ def add_new_item_type():
    return new_type.to_dict()
 
 @app.route('/add_new_client', methods=['POST'])
+@entry_exit_logging
 def add_new_client():
    handler = ModelHandler(SessionFactory)
    name, email = request.form['new_client_name'], request.form['new_client_email']
    existing_clients = handler.list_clients(ClientQuery(email=email))
    if len(existing_clients) > 0:
-      raise InvalidArgument(f"Client with the provided email {email} already exists with ID {existing_clients[0].client_id}!")
+      raise ValueError(f"Client with the provided email {email} already exists with ID {existing_clients[0].client_id}!")
    new_client = Client(name=name, email=email)
    handler.persist_object(new_client)
 
    return new_client.to_dict()
 
+
 @app.route('/add_new_collection', methods=['POST'])
+@entry_exit_logging
 def add_new_collection():
    handler = ModelHandler(SessionFactory)
    name, client_id = request.form['new_collection_name'], request.form['client_id']
    existing_collections = handler.list_collections(CollectionQuery(client_ids=[client_id], name=name))
    if len(existing_collections) > 0:
-      raise InvalidArgument(f"Collection with name {existing_collections[0].name} already exists for client ID {client_id} with ID {existing_collections[0].collection_id}!")
+      raise ValueError(f"Collection with name {existing_collections[0].name} already exists for client ID {client_id} with ID {existing_collections[0].collection_id}!")
    new_collection = ItemCollection(name=name, client_id=client_id)
    handler.persist_object(new_collection)
 
    return new_collection.to_dict()
 
 @app.route('/get_items', methods=['GET'])
+@entry_exit_logging
 def get_items():
    collection_id = request.args.get('collection_id', None)
-   logging.info(f"Got request with id {collection_id}")
 
    handler = ModelHandler(SessionFactory)
    query = ItemQuery()
@@ -87,6 +111,7 @@ def get_items():
    )
 
 @app.route('/get_item_types', methods=['GET'])
+@entry_exit_logging
 def get_item_types():
    handler = ModelHandler(SessionFactory)
    query = ItemTypeQuery()
@@ -100,6 +125,7 @@ def get_item_types():
    )
 
 @app.route('/get_collections', methods=['GET'])
+@entry_exit_logging
 def get_collections():
    client_id = request.args.get('client_id', None)
    collection_id = request.args.get('collection_id', None)
@@ -118,13 +144,13 @@ def get_collections():
    )
 
 @app.route('/add_item_to_collection', methods=['POST'])
+@entry_exit_logging
 def add_item_to_collection():
-   logging.info(request.form)
    collection_id = request.form['collection_id']
    quantity = int(request.form['quantity'])
 
    if quantity < 1:
-      raise InvalidArgument("quantity must be at least 1")
+      raise ValueError("quantity must be at least 1")
    
    item_type_id = request.form.get('item_type_id', None)
 
@@ -132,7 +158,7 @@ def add_item_to_collection():
    query = ItemQuery(item_type_ids=[item_type_id], collection_ids=[collection_id])
    items = handler.list_items(query)
    if len(items) > 1:
-      raise InvalidArgument(f"Found more than one item for item_type_id {item_type_id} in collection {collection_id}")
+      raise ValueError(f"Found more than one item for item_type_id {item_type_id} in collection {collection_id}")
 
    item_to_modify = None
    if len(items) == 1:
@@ -145,17 +171,18 @@ def add_item_to_collection():
    return item_to_modify.to_dict()
 
 @app.route('/modify_item', methods=['POST'])
+@entry_exit_logging
 def modify_item():
    new_quantity = int(request.form['new_quantity'])
    if new_quantity < 0:
-      raise InvalidArgument("quantity must be at least 0")
+      raise ValueError("quantity must be at least 0")
    item_id = request.form['item_id']
 
    handler = ModelHandler(SessionFactory)   
    query = ItemQuery(ids=[item_id])
    items = handler.list_items(query)
    if len(items) != 1:
-      raise InvalidArgument(f"Found more than one item for id {item_id}")
+      raise ValueError(f"Found more than one item for id {item_id}")
 
    item_to_modify = items[0]
    item_to_modify.quantity = new_quantity
