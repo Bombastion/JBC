@@ -6,6 +6,16 @@ filegroup(
     srcs = glob(["templates/*"]),
 )
 
+filegroup(
+    name = "javascript",
+    srcs = glob(["static/scripts/*"]),
+)
+
+filegroup(
+    name = "styles",
+    srcs = glob(["static/styles/*"]),
+)
+
 py_library(
     name = "server_exceptions",
     srcs = ["exception.py"],
@@ -18,6 +28,8 @@ py_binary(
     name = "flask_service",
     srcs = ["flask_service.py"],
     data = [
+        ":javascript",
+        ":styles",
         ":templates",
     ],
     deps = [

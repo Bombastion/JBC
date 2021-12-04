@@ -1,5 +1,7 @@
 <!doctype html>
 <head>
+    <title>JBC Home Cellar Tracker</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/main.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function populate_type_list(){
@@ -43,7 +45,7 @@
             for (collection_index = 0; collection_index < collections.length; collection_index++) {
                 current_collection = collections[collection_index];
                 jQuery("#current_collections").append("<h1>" + current_collection.name + "</h1>");
-                jQuery("#current_collections").append("<table>");
+                jQuery("#current_collections").append("<table class='center'>");
                 current_table = jQuery("#current_collections table:eq(" + collection_index + ")");
                 current_table.append("<tr><th>Name</th><th>Amount</th></tr>");
                 items_for_collection = await get_collection_items(current_collection.collection_id);
@@ -72,27 +74,28 @@
         }
     </script>
 </head>
-<title>JBC</title>
-<div id="current_collections">
-</div>
-<br/>
-Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/><br/>
+<body>
+    <div id="current_collections">
+    </div>
+    <br/>
+    Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/><br/>
 
-Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> <input type="submit" value="Add User" id="add_new_user_button"/><br/>
+    Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> <input type="submit" value="Add User" id="add_new_user_button"/><br/>
 
-Name: <input type="text" name="new_collection_name" id="new_collection_name"/> <input type="submit" value="Add Collection" id="add_collection_button"/><br/>
+    Name: <input type="text" name="new_collection_name" id="new_collection_name"/> <input type="submit" value="Add Collection" id="add_collection_button"/><br/>
 
-<input type="submit" value="Get Collections" id="get_collections_button"/><br/>
+    <input type="submit" value="Get Collections" id="get_collections_button"/><br/>
 
-Beer type: 
-<select id="item_type_options" name="item_type_options">
-</select>
-Cellar: 
-<select id="collection_options" name="collection_options">
-</select>
-Amount:
-<input type="text" name="new_inventory_amount" id="new_inventory_amount"/>
-<input type="submit" value="Add Beer to Collection" id="add_to_collection_button"/><br/>
+    Beer type: 
+    <select id="item_type_options" name="item_type_options">
+    </select>
+    Cellar: 
+    <select id="collection_options" name="collection_options">
+    </select>
+    Amount:
+    <input type="text" name="new_inventory_amount" id="new_inventory_amount"/>
+    <input type="submit" value="Add Beer to Collection" id="add_to_collection_button"/><br/>
+</body>
 <script>
     // Populate page elements
     populate_type_list();

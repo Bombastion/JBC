@@ -62,7 +62,7 @@ class ModelHandler:
         if query.text_search:
             criteria.append(ItemType.name.match(query.text_search))
 
-        return session.query(ItemType).filter(*criteria).order_by(ItemType.item_type_id).all()
+        return session.query(ItemType).filter(*criteria).order_by(ItemType.producer.asc(), ItemType.name.asc()).all()
 
     def list_clients(self, query: ClientQuery) -> List[Client]:
         session = self.session_factory()
