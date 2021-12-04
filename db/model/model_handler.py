@@ -13,9 +13,10 @@ class ItemTypeQuery:
         self.text_search = text_search
 
 class ItemQuery:
-    def __init__(self, ids: List[str]=None, collection_ids: List[str]=None):
+    def __init__(self, ids: List[str]=None, collection_ids: List[str]=None, item_type_ids: List[str]=None):
         self.ids = ids
         self.collection_ids = collection_ids
+        self.item_type_ids = item_type_ids
 
 class ClientQuery:
     def __init__(self, name: str=None, email: str=None):
@@ -53,6 +54,8 @@ class ModelHandler:
             criteria.append(Item.item_id.in_(query.ids))
         if query.collection_ids:
             criteria.append(Item.collection_id.in_(query.collection_ids))
+        if query.item_type_ids:
+            criteria.append(Item.item_type_id.in_(query.item_type_ids))
 
         results = session.query(Item).filter(*criteria).order_by(Item.item_id).all()
         session.close()
