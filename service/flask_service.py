@@ -36,13 +36,20 @@ def entry_exit_logging(func):
    def inner_func(*args, **kwargs):
       request_id = uuid.uuid4()
       try:
+         # Log common info about the request
          logging.info(f"[{request_id}] Entering {func.__name__}")
+         logging.info(f"[{request_id}] Request form: {request.form}")
+         logging.info(f"[{request_id}] Request args: {request.args}")
+
          result = func(*args, **kwargs)
+
+         # Log common exit info and return
          logging.info(f"[{request_id}] Exiting {func.__name__}")
          return result
       except Exception as e:
          logging.error(f"[{request_id}] Encountered error in {func.__name__}")
          logging.error(f"[{request_id}] {traceback.format_exc()}")
+         # Add more specific handling as needed here
          if isinstance(e, ValueError):
             raise BadRequest(f"[{request_id}] {str(e)}")
    inner_func.__name__ = f"{func.__name__}_wrapper"
