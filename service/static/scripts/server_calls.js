@@ -59,6 +59,30 @@ async function retrieve_item_types(item_type_id) {
     return item_types;
 }
 
+async function add_item_type(name,
+                             producer) {
+    var new_collection;
+
+    await jQuery.ajax({
+        url: "/add_new_item_type",
+        type: "post",
+        data: {
+            "new_item_type_name": name,
+            "new_item_type_producer": producer,
+        },
+        success: function(response) {
+            new_collection = response; 
+        },
+        error: function(response) {
+            recent_err = response
+            console.log(`Failed call to /add_new_item_type: 
+            ${response.responseJSON.description}`);
+        }
+    });
+
+    return new_collection;
+}   
+
 async function add_collection_for_user(client_id,
                                        collection_name) {
     var new_collection;

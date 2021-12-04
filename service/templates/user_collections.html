@@ -15,6 +15,8 @@
         var new_cellar_select_index = 0;
         const new_cellar_value = "--Add To New Cellar--";
         var added_cellar_label;
+
+        const new_item_type_value = "--Add New Beer--";
         
         toggle_div_values = ["+", "-"]
         toggle_div_values_index = 0
@@ -68,6 +70,7 @@
         
         function populate_item_types(item_types) {
             jQuery(".add_beer_types").empty();
+            jQuery(".add_beer_types").append(`<option>${new_item_type_value}</option>`);
             for (const item_type of item_types) {
                 jQuery(".add_beer_types").append(
                     `<option value="${item_type.item_type_id}">${item_type.producer} ${item_type.name}</option>`
@@ -89,6 +92,10 @@
     <div class="add_beer_div_wrapper" hidden="true">
         <div class="add_beer_div">
             <text>Beer to add: </text><select class="beer_select add_beer_types"></select><br/>
+            <div class="add_beer_type_div" hidden="true">
+                <text>New Beer Name: </text><input type="text" class="text_input add_beer_name"/><br/>
+                <text>Brewery: </text><input type="text" class="text_input add_beer_brewery"/><br/><br/>
+            </div>
             <text>Add to cellar: </text><select class="cellar_select add_beer_cellars"></select><br/>
             <div class="add_cellar_div" hidden="true">
                 <text>New Cellar Name: </text><input type="text" class="text_input add_cellar_name"/><br/><br/>
@@ -113,13 +120,18 @@
         populate_item_types(item_types);
     }
 
+    function init_item_types_results(results) {
+        handle_item_types_results(results);
+        jQuery(".add_beer_types").prop("selectedIndex", 1);
+    }
+
     // Load the initial view
     retrieve_collections(user_id).then(
         handle_collections_results, null
     );
 
     retrieve_item_types().then(
-        handle_item_types_results, null
+        init_item_types_results, null
     );
     
 
@@ -140,6 +152,13 @@
         var item_type_id = jQuery(".add_beer_types").val();
         var collection_id = jQuery(".add_beer_cellars").val();
         const amount = jQuery(".add_beer_amount").val();
+
+        if (item_type_id == new_item_type_value) {
+            const new_beer_name = jQuery(".add_beer_name").val();
+            const new_beer_brewery = jQuery(".add_beer_brewery").val();
+            new_beer_type = await add_item_type(new_beer_name, new_beer_brewery);
+            item_type_id = new_beer_type.item_type_id;
+        }
 
         if (collection_id == new_cellar_value) {
             const new_cellar_name = jQuery(".add_cellar_name").val();
@@ -162,6 +181,16 @@
         }
         else {
             jQuery(".add_cellar_div").hide();
+        }
+    });
+
+    // Register the handler for choosing the "new beer type" option from the add list
+    jQuery(".add_beer_types").change(function (){
+        if (jQuery(".add_beer_types").val() == new_item_type_value) {
+            jQuery(".add_beer_type_div").show();
+        }
+        else {
+            jQuery(".add_beer_type_div").hide();
         }
     });
 </script>
