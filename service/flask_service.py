@@ -119,6 +119,7 @@ def get_collections():
 
 @app.route('/add_item_to_collection', methods=['POST'])
 def add_item_to_collection():
+   logging.info(request.form)
    collection_id = request.form['collection_id']
    quantity = int(request.form['quantity'])
 
@@ -128,10 +129,20 @@ def add_item_to_collection():
    item_type_id = request.form.get('item_type_id', None)
 
    handler = ModelHandler(SessionFactory)   
-   new_item = Item(collection_id=collection_id, quantity=quantity, item_type_id=item_type_id)
-   handler.persist_object(new_item)
+   query = ItemQuery(item_type_ids=[item_type_id], collection_ids=[collection_id])
+   items = handler.list_items(query)
+   if len(items) > 1:
+      raise InvalidArgument(f"Found more than one item for item_type_id {item_type_id} in collection {collection_id}")
 
-   return new_item.to_dict()
+   item_to_modify = None
+   if len(items) == 1:
+      item_to_modify = items[0]
+      item_to_modify.quantity += quantity
+   else: 
+      item_to_modify = Item(collection_id=collection_id, quantity=quantity, item_type_id=item_type_id)
+   handler.persist_object(item_to_modify)
+
+   return item_to_modify.to_dict()
 
 @app.route('/modify_item', methods=['POST'])
 def modify_item():
