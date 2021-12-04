@@ -38,11 +38,13 @@ class ModelHandler:
         session.commit()
         session.refresh(object)
         session.expunge(object)
+        session.close()
 
     def delete_object(self, object: Any) -> None:
         session = self.session_factory()
         session.delete(object)
         session.commit()
+        session.close()
 
     def list_items(self, query: ItemQuery) -> List[Item]:
         session = self.session_factory()
@@ -52,7 +54,9 @@ class ModelHandler:
         if query.collection_ids:
             criteria.append(Item.collection_id.in_(query.collection_ids))
 
-        return session.query(Item).filter(*criteria).order_by(Item.item_id).all()
+        results = session.query(Item).filter(*criteria).order_by(Item.item_id).all()
+        session.close()
+        return results
 
     def list_item_types(self, query: ItemTypeQuery) -> List[ItemType]:
         session = self.session_factory()
@@ -62,7 +66,9 @@ class ModelHandler:
         if query.text_search:
             criteria.append(ItemType.name.match(query.text_search))
 
-        return session.query(ItemType).filter(*criteria).order_by(ItemType.producer.asc(), ItemType.name.asc()).all()
+        results = session.query(ItemType).filter(*criteria).order_by(ItemType.producer.asc(), ItemType.name.asc()).all()
+        session.close()
+        return results
 
     def list_clients(self, query: ClientQuery) -> List[Client]:
         session = self.session_factory()
@@ -72,7 +78,9 @@ class ModelHandler:
         if query.email:
             criteria.append(func.lower(Client.email) == func.lower(query.email))
 
-        return session.query(Client).filter(*criteria).order_by(Client.name).all()
+        results = session.query(Client).filter(*criteria).order_by(Client.name).all()
+        session.close()
+        return results
 
     def list_collections(self, query: CollectionQuery) -> List[ItemCollection]:
         session = self.session_factory()
@@ -84,4 +92,6 @@ class ModelHandler:
         if query.name:
             criteria.append(func.lower(ItemCollection.name) == func.lower(query.name))
 
-        return session.query(ItemCollection).filter(*criteria).order_by(ItemCollection.name).all()
+        results = session.query(ItemCollection).filter(*criteria).order_by(ItemCollection.name).all()
+        session.close()
+        return results

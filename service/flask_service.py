@@ -120,25 +120,41 @@ def get_collections():
 @app.route('/add_item_to_collection', methods=['POST'])
 def add_item_to_collection():
    collection_id = request.form['collection_id']
-   quantity = request.form['quantity']
+   quantity = int(request.form['quantity'])
+
+   if quantity < 1:
+      raise InvalidArgument("quantity must be at least 1")
    
    item_type_id = request.form.get('item_type_id', None)
 
-   handler = ModelHandler(SessionFactory)
-   # If the item type is not specified, add a new item
-   if not item_type_id:
-      name, producer = request.form['new_item_type_name'], request.form['new_item_type_producer']
-      handler = ModelHandler(SessionFactory)
-      new_type = ItemType(name=name, producer=producer)
-      handler.persist_object(new_type)
-
-      item_type_id = new_type.item_type_id
-   
+   handler = ModelHandler(SessionFactory)   
    new_item = Item(collection_id=collection_id, quantity=quantity, item_type_id=item_type_id)
    handler.persist_object(new_item)
 
    return new_item.to_dict()
 
+@app.route('/modify_item', methods=['POST'])
+def modify_item():
+   new_quantity = int(request.form['new_quantity'])
+   if new_quantity < 0:
+      raise InvalidArgument("quantity must be at least 0")
+   item_id = request.form['item_id']
+
+   handler = ModelHandler(SessionFactory)   
+   query = ItemQuery(ids=[item_id])
+   items = handler.list_items(query)
+   if len(items) != 1:
+      raise InvalidArgument(f"Found more than one item for id {item_id}")
+
+   item_to_modify = items[0]
+   item_to_modify.quantity = new_quantity
+   if new_quantity == 0:
+      handler.delete_object(item_to_modify)
+   else:
+      item_to_modify.quantity = new_quantity
+      handler.persist_object(item_to_modify)
+
+   return item_to_modify.to_dict()
 
 if __name__ == '__main__':
    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', encoding='utf-8', level=logging.DEBUG, )

@@ -20,6 +20,37 @@
         
         toggle_div_values = ["+", "-"]
         toggle_div_values_index = 0
+
+        var current_difference_timer;
+
+        async function handler_applied_difference(quantity_cell_element_id) {
+            quantity_cell = jQuery(`#${quantity_cell_element_id}`);
+            item_id = quantity_cell_element_id.split("_quantity")[0]
+            
+            modify_item(item_id, quantity_cell.html()).then(
+                function success(result) {
+                    // If the resulting quantity is 0, remove the row
+                    if (result.quantity == 0) {
+                        quantity_cell.parent().remove();
+                    }
+                    else {
+                        quantity_cell.html(result.quantity);
+                    }
+                }, null
+            );
+        }
+
+        async function apply_difference_to_html(quantity_cell_element_id, amount) {
+            quantity_cell = jQuery(`#${quantity_cell_element_id}`);
+            current_amount = parseInt(quantity_cell.html());
+            current_amount = Math.max(current_amount + amount, 0);
+            quantity_cell.html(`${current_amount}`);
+
+            clearTimeout(current_difference_timer);
+            current_difference_timer = setTimeout(function() {
+                handler_applied_difference(quantity_cell_element_id)
+            }, 2000);
+        }
         
         async function load_cellar_div(cellar_list, selected_index) {
             if (cellar_list.length > 0) {
@@ -50,7 +81,7 @@
                         jQuery("#item_list_div").append("<table class='beers_table center'>");
                         current_table = jQuery("#item_list_div .beers_table");
 
-                        current_table.append("<tr><th>Name</th><th>Brewery</th><th>Count</th></tr>");
+                        current_table.append("<tr><th>Name</th><th>Brewery</th><th>Count</th><th>Add/Remove</th></tr>");
                         for (const current_item of items) {
                             item_types_for_item = await retrieve_item_types(current_item.item_type_id);
                             if (item_types_for_item.length > 1) {
@@ -58,7 +89,25 @@
                                 console.warn(item_types_for_item);
                             }
                             item_type = item_types_for_item[0];
-                            current_table.append(`<tr><td>${item_type.name}</td><td>${item_type.producer}</td><td>${current_item.quantity}</td></tr>`);
+                            current_table.append(`
+                            <tr>
+                                <td>${item_type.name}</td>
+                                <td>${item_type.producer}</td>
+                                <td id="${current_item.item_id}_quantity" label="${current_item.item_id}">${current_item.quantity}</td>
+                                <td>
+                                    <input type="button" value="-" class="button subtract_beer_amount_button" id="${current_item.item_id}_decrement"/>
+                                    <input type="button" value="+" class="button add_beer_amount_button" id="${current_item.item_id}_increment"/>
+                                </td>
+                            </tr>`
+                            );
+                           
+                            jQuery(`#${current_item.item_id}_decrement`).click(function() {
+                                apply_difference_to_html(`${current_item.item_id}_quantity`, -1);
+                            });
+
+                            jQuery(`#${current_item.item_id}_increment`).click(function() {
+                                apply_difference_to_html(`${current_item.item_id}_quantity`, 1);
+                            });
                         }
                     }
                 )
