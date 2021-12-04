@@ -121,19 +121,13 @@ def get_collections():
 def add_item_to_collection():
    collection_id = request.form['collection_id']
    quantity = request.form['quantity']
+
+   if quantity < 1:
+      raise InvalidArgument("quantity must be at least 1")
    
    item_type_id = request.form.get('item_type_id', None)
 
-   handler = ModelHandler(SessionFactory)
-   # If the item type is not specified, add a new item
-   if not item_type_id:
-      name, producer = request.form['new_item_type_name'], request.form['new_item_type_producer']
-      handler = ModelHandler(SessionFactory)
-      new_type = ItemType(name=name, producer=producer)
-      handler.persist_object(new_type)
-
-      item_type_id = new_type.item_type_id
-   
+   handler = ModelHandler(SessionFactory)   
    new_item = Item(collection_id=collection_id, quantity=quantity, item_type_id=item_type_id)
    handler.persist_object(new_item)
 
