@@ -61,7 +61,7 @@ async function retrieve_item_types(item_type_id) {
 
 async function add_item_type(name,
                              producer) {
-    var new_collection;
+    var new_item_type;
 
     await jQuery.ajax({
         url: "/add_new_item_type",
@@ -71,7 +71,7 @@ async function add_item_type(name,
             "new_item_type_producer": producer,
         },
         success: function(response) {
-            new_collection = response; 
+            new_item_type = response; 
         },
         error: function(response) {
             recent_err = response
@@ -80,7 +80,7 @@ async function add_item_type(name,
         }
     });
 
-    return new_collection;
+    return new_item_type;
 }   
 
 async function add_collection_for_user(client_id,
