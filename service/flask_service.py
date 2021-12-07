@@ -95,11 +95,11 @@ def add_new_item_type():
 @entry_exit_logging
 def add_new_client():
    handler = ModelHandler(SessionFactory)
-   name, email = request.form['new_client_name'], request.form['new_client_email']
+   name, email, password = request.form['new_client_name'], request.form['new_client_email'], request.form['new_client_password']
    existing_clients = handler.list_clients(ClientQuery(email=email))
    if len(existing_clients) > 0:
       raise ValueError(f"Client with the provided email {email} already exists with ID {existing_clients[0].client_id}!")
-   new_client = Client(name=name, email=email)
+   new_client = Client(name=name, email=email, password=password)
    handler.persist_object(new_client)
 
    return new_client.to_dict()
