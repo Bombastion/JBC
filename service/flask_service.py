@@ -61,6 +61,21 @@ def entry_exit_logging(func):
 def landing_page():
    return render_template('index.html')
 
+@app.route('/authExample')
+@entry_exit_logging
+def auth_base():
+   return render_template('base.html')
+
+@app.route('/login')
+@entry_exit_logging
+def login():
+   return render_template('login.html')
+
+@app.route('/signup')
+@entry_exit_logging
+def signup():
+   return render_template('signup.html')
+
 @app.route('/myCellars')
 @entry_exit_logging
 def user_cellars_page():
