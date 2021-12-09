@@ -3,6 +3,7 @@ import traceback
 import uuid
 
 from flask import flash, Flask, json, jsonify, redirect, render_template, request, url_for
+from flask_login import LoginManager
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -16,6 +17,15 @@ from db.model.sqlalchemy_base import SessionFactory
 app = Flask(__name__)
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
+
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+   # since the user_id is just the primary key of our user table, use it in the query for the user
+   return Client.query.get(user_id)
 
 def hash_password(plaintext: str) -> str:
    return generate_password_hash(plaintext, method='sha256')
@@ -65,6 +75,8 @@ def entry_exit_logging(func):
    inner_func.__name__ = f"{func.__name__}_wrapper"
    return inner_func
 
+
+def 
 
 @app.route('/')
 @entry_exit_logging
