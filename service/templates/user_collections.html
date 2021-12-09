@@ -9,7 +9,7 @@
     <script src="{{ url_for('static', filename='scripts/server_calls.js') }}"></script>
     <script>
         // Default User ID until we get actual auth going
-        var user_id = "1cebc6a4-dd88-421a-9c1f-fe25c4c6ae5e";
+        var user_id = "{{ current_user.client_id }}";
 
         // Initialize page variables
         var cellar_list;

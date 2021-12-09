@@ -3,7 +3,7 @@ import traceback
 import uuid
 
 from flask import flash, Flask, json, jsonify, redirect, render_template, request, url_for
-from flask_login import LoginManager
+from flask_login import LoginManager, login_required, login_user, logout_user
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -19,13 +19,16 @@ app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
+login_manager.login_view = 'login_wrapper'
 login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-   # since the user_id is just the primary key of our user table, use it in the query for the user
-   return Client.query.get(user_id)
+   handler = ModelHandler(SessionFactory)
+   existing_clients = handler.list_clients(ClientQuery(ids=[user_id]))
+   if len(existing_clients) != 1:
+      raise ValueError(f"Found more than one user for ID {user_id}")
+   return existing_clients[0]
 
 def hash_password(plaintext: str) -> str:
    return generate_password_hash(plaintext, method='sha256')
@@ -75,9 +78,6 @@ def entry_exit_logging(func):
    inner_func.__name__ = f"{func.__name__}_wrapper"
    return inner_func
 
-
-def 
-
 @app.route('/')
 @entry_exit_logging
 def landing_page():
@@ -98,6 +98,7 @@ def login():
 def login_post():
    email = request.form.get('email')
    password = request.form.get('password')
+   remember = True if request.form.get('remember') else False
 
    handler = ModelHandler(SessionFactory)
    existing_clients = handler.list_clients(ClientQuery(email=email))
@@ -109,8 +110,15 @@ def login_post():
       flash("[danger]Email or password doesn't match. Please try again")
       return redirect(url_for('login_wrapper'))
 
+   login_user(existing_clients[0], remember=remember)
    return redirect(url_for('user_cellars_page_wrapper'))
 
+@app.route('/logout')
+@login_required
+@entry_exit_logging
+def logout():
+   logout_user()
+   return redirect(url_for('login_wrapper'))
 
 @app.route('/signup', methods=['GET'])
 @entry_exit_logging
@@ -141,6 +149,7 @@ def signup_post():
    return redirect(url_for('login_wrapper'))
 
 @app.route('/myCellars')
+@login_required
 @entry_exit_logging
 def user_cellars_page():
    return render_template('user_collections.html')

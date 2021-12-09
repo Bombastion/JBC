@@ -13,6 +13,10 @@ class Client(UserMixin, Base):
     email = sa.Column(sa.Text, nullable=False)
     password = sa.Column(sa.Text, nullable=False)
 
+    # Required by flask_login.login_user 
+    def get_id(self):
+        return self.client_id
+
     def __repr__(self) -> str:
         return f"Client(client_id={self.client_id}, name={self.name}, email={self.email})"
 

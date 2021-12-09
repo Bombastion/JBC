@@ -19,9 +19,10 @@ class ItemQuery:
         self.item_type_ids = item_type_ids
 
 class ClientQuery:
-    def __init__(self, name: str=None, email: str=None):
+    def __init__(self, name: str=None, email: str=None, ids: List[str]=None):
         self.name = name
         self.email = email
+        self.ids = ids
 
 class CollectionQuery:
     def __init__(self, ids: List[str]=None, client_ids: List[str]=None, name: str=None):
@@ -80,6 +81,8 @@ class ModelHandler:
             criteria.append(func.lower(Client.name) == func.lower(query.name))
         if query.email:
             criteria.append(func.lower(Client.email) == func.lower(query.email))
+        if query.ids:
+            criteria.append(Client.client_id.in_(query.ids))
 
         results = session.query(Client).filter(*criteria).order_by(Client.name).all()
         session.close()
