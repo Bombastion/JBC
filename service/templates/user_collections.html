@@ -1,4 +1,7 @@
 <!doctype html>
+{% extends "base.html" %}
+
+{% block content %}
 <head>
     <title>JBC Home Cellar Tracker</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/main.css') }}">
@@ -6,7 +9,7 @@
     <script src="{{ url_for('static', filename='scripts/server_calls.js') }}"></script>
     <script>
         // Default User ID until we get actual auth going
-        var user_id = "58688c37-1aa3-4349-9611-815419ea7662";
+        var user_id = "{{ current_user.client_id }}";
 
         // Initialize page variables
         var cellar_list;
@@ -53,8 +56,9 @@
         }
         
         async function load_cellar_div(cellar_list, selected_index) {
+            console.log("Doing the needful")
             if (cellar_list.length > 0) {
-                jQuery(".view_cellar_select, .add_beer_cellars").empty();
+                jQuery("#collection_options, #add_beer_cellars_select").empty();
                 
                 for (cellar_index = 0; cellar_index < cellar_list.length; cellar_index++) {
                     option_label = `${cellar_list[cellar_index].name}`
@@ -62,19 +66,14 @@
                     if (added_cellar_label == option_label) {
                         selected_index = cellar_index;
                     }
-                    jQuery(".view_cellar_select")
+                    jQuery("#collection_options")
                         .append(`<option value="${cellar_list[cellar_index].collection_id}" label="${option_label}">${option_label}</option>`);
-                    jQuery(".add_beer_cellars")
+                    jQuery("#add_beer_cellars_select")
                         .append(`<option value="${cellar_list[cellar_index].collection_id}" label="${option_label}">${option_label}</option>`);
                 }
                 
                 jQuery("#current_cellar_name").html(`<h1>${cellar_list[selected_index].name}</h1>`);
 
-
-                jQuery(".add_beer_cellars").append(`<option>${new_cellar_value}</option>`);
-                new_cellar_select_index = cellar_list.length;
-
-                jQuery(".view_cellar_select, .add_beer_cellars").prop("selectedIndex", selected_index);
                 retrieve_items(cellar_list[selected_index].collection_id).then(
                     async function success(items) {
                         jQuery("#item_list_div").empty();
@@ -113,15 +112,24 @@
                 )
             }
 
+            jQuery("#add_beer_cellars_select").append(`<option>${new_cellar_value}</option>`);
+            new_cellar_select_index = cellar_list.length;
+            if (cellar_list.length > 0) {
+                jQuery("#collection_options, #add_beer_cellars_select").prop("selectedIndex", selected_index);
+            }
+            else {
+                jQuery("#collection_options, #add_beer_cellars_select").prop("selectedIndex", 1);
+            }
+
             // Unset the label to avoid picking this index every time
             added_cellar_label = undefined;
         }
         
         function populate_item_types(item_types) {
-            jQuery(".add_beer_types").empty();
-            jQuery(".add_beer_types").append(`<option>${new_item_type_value}</option>`);
+            jQuery("#add_beer_types_select").empty();
+            jQuery("#add_beer_types_select").append(`<option>${new_item_type_value}</option>`);
             for (const item_type of item_types) {
-                jQuery(".add_beer_types").append(
+                jQuery("#add_beer_types_select").append(
                     `<option value="${item_type.item_type_id}">${item_type.producer} ${item_type.name}</option>`
                 );
             }
@@ -134,23 +142,23 @@
         <div id="current_cellar_name"></div>
         <div id="cellar_select_div">
             My Cellars: <select id="collection_options" name="collection_options" class="cellar_select view_cellar_select"></select>
-            <input type="button" value="Go" class="view_collection_button button"/>
+            <input type="button" value="Go" id="view_collection_button" class="view_collection_button button"/>
         </div>
     </div>
-    <input type="button" value="+" class="add_button toggle_add_beer_div" />
-    <div class="add_beer_div_wrapper" hidden="true">
+    <input type="button" value="+" class="add_button toggle_add_beer_div" id="toggle_add_beer_div" />
+    <div class="add_beer_div_wrapper" id="add_beer_div_wrapper" hidden="true">
         <div class="add_beer_div">
-            <text>Beer to add: </text><select class="beer_select add_beer_types"></select><br/>
+            <text>Beer to add: </text><select class="beer_select add_beer_types" id="add_beer_types_select"></select><br/>
             <div class="add_beer_type_div" hidden="true">
                 <text>New Beer Name: </text><input type="text" class="text_input add_beer_name"/><br/>
                 <text>Brewery: </text><input type="text" class="text_input add_beer_brewery"/><br/><br/>
             </div>
-            <text>Add to cellar: </text><select class="cellar_select add_beer_cellars"></select><br/>
+            <text>Add to cellar: </text><select class="cellar_select add_beer_cellars" id="add_beer_cellars_select"></select><br/>
             <div class="add_cellar_div" hidden="true">
                 <text>New Cellar Name: </text><input type="text" class="text_input add_cellar_name"/><br/><br/>
             </div>
             <text>Amount: </text><input type="text" class="amount_input add_beer_amount"/><br/><br/>
-            <input type="button" value="Add Beer" class="add_beer_button"/>
+            <input type="button" value="Add Beer" id="add_beer_to_cellar_button" class="add_beer_button"/>
         </div>
     </div>
     <br/>
@@ -161,7 +169,7 @@
 <script>
     function handle_collections_results(results) {
         cellar_list = results;
-        load_cellar_div(cellar_list, Math.max(jQuery(".view_cellar_select").prop("selectedIndex"), 0));
+        load_cellar_div(cellar_list, Math.max(jQuery("#collection_options").prop("selectedIndex"), 0));
     }
 
     function handle_item_types_results(results) {
@@ -171,7 +179,7 @@
 
     function init_item_types_results(results) {
         handle_item_types_results(results);
-        jQuery(".add_beer_types").prop("selectedIndex", 1);
+        jQuery("#add_beer_types_select").prop("selectedIndex", 1);
     }
 
     // Load the initial view
@@ -185,21 +193,21 @@
     
 
     // Register retrieve collection view button
-    jQuery(".view_collection_button").click(function(){
-        load_cellar_div(cellar_list, jQuery(".view_cellar_select").prop("selectedIndex"));
+    jQuery("#view_collection_button").click(function(){
+        load_cellar_div(cellar_list, jQuery("#collection_options").prop("selectedIndex"));
     });
 
     // Register behavior for add button
-    jQuery(".toggle_add_beer_div").click(function(){
-        jQuery(".add_beer_div_wrapper").toggle();
+    jQuery("#toggle_add_beer_div").click(function(){
+        jQuery("#add_beer_div_wrapper").toggle();
         toggle_div_values_index = (toggle_div_values_index + 1) % toggle_div_values.length;
-        jQuery(".toggle_add_beer_div").prop("value", toggle_div_values[toggle_div_values_index]);
+        jQuery("#").prop("value", toggle_div_values[toggle_div_values_index]);
     });
 
     // Register the button to actually make the add_item_to_collection call
-    jQuery(".add_beer_button").click(async function(){
-        var item_type_id = jQuery(".add_beer_types").val();
-        var collection_id = jQuery(".add_beer_cellars").val();
+    jQuery("#add_beer_to_cellar_button").click(async function(){
+        var item_type_id = jQuery("#add_beer_types_select").val();
+        var collection_id = jQuery("#add_beer_cellars_select").val();
         const amount = jQuery(".add_beer_amount").val();
 
         if (item_type_id == new_item_type_value) {
@@ -224,8 +232,8 @@
     });
 
     // Register the handler for choosing the "new cellar" option from the add list
-    jQuery(".add_beer_cellars").change(function (){
-        if (jQuery(".add_beer_cellars").prop("selectedIndex") == new_cellar_select_index) {
+    jQuery("#add_beer_cellars_select").change(function (){
+        if (jQuery("#add_beer_cellars_select").prop("selectedIndex") == new_cellar_select_index) {
             jQuery(".add_cellar_div").show();
         }
         else {
@@ -234,8 +242,8 @@
     });
 
     // Register the handler for choosing the "new beer type" option from the add list
-    jQuery(".add_beer_types").change(function (){
-        if (jQuery(".add_beer_types").val() == new_item_type_value) {
+    jQuery("#add_beer_types_select").change(function (){
+        if (jQuery("#add_beer_types_select").val() == new_item_type_value) {
             jQuery(".add_beer_type_div").show();
         }
         else {
@@ -243,3 +251,5 @@
         }
     });
 </script>
+
+{% endblock %}

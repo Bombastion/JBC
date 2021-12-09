@@ -57,7 +57,7 @@
         }
         
         function retrieve_collections() {
-            var client_id = "58688c37-1aa3-4349-9611-815419ea7662";
+            var client_id = "1cebc6a4-dd88-421a-9c1f-fe25c4c6ae5e";
         
             jQuery.ajax({
                 url: "/get_collections",
@@ -80,7 +80,7 @@
     <br/>
     Name: <input type="text" name="new_item_type_name" id="new_item_type_name"/> Manufacturer: <input type="text" name="new_item_type_producer" id="new_item_type_producer"/> <input type="submit" value="Add Beer" id="add_new_type_button"/><br/>
 
-    Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> <input type="submit" value="Add User" id="add_new_user_button"/><br/>
+    Name: <input type="text" name="new_client_name" id="new_client_name"/> Email: <input type="text" name="new_client_email" id="new_client_email"/> Password (temp): <input type="text" name="new_client_password" id="new_client_password"/> <input type="submit" value="Add User" id="add_new_user_button"/><br/>
 
     Name: <input type="text" name="new_collection_name" id="new_collection_name"/> <input type="submit" value="Add Collection" id="add_collection_button"/><br/>
 
@@ -123,12 +123,13 @@
     // Register submit for add user button
     jQuery("#add_new_user_button").click(function(){
         var name = jQuery("#new_client_name").val();
-        var producer = jQuery("#new_client_email").val();
+        var email = jQuery("#new_client_email").val();
+        var password = jQuery("#new_client_password").val();
         
         jQuery.ajax({
             url: "/add_new_client",
             type: "post",
-            data: {"new_client_name": name, "new_client_email": producer},
+            data: {"new_client_name": name, "new_client_email": email, "new_client_password": password},
             success: function(response) {
                 console.log("Added new client with ID " + response.client_id);
             },
@@ -142,7 +143,7 @@
     // Register submit for add collection button
     jQuery("#add_collection_button").click(function(){
         var name = jQuery("#new_collection_name").val();
-        var client_id = "58688c37-1aa3-4349-9611-815419ea7662";
+        var client_id = "1cebc6a4-dd88-421a-9c1f-fe25c4c6ae5e";
         
         jQuery.ajax({
             url: "/add_new_collection",
