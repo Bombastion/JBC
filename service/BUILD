@@ -28,5 +28,6 @@ py_binary(
         "//db/model:models",
         "//db/model:handler",
         requirement("Flask"),
+        requirement("Flask-Login"),
     ],
 )

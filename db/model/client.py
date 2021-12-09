@@ -1,11 +1,12 @@
 from typing import Dict
 
+from flask_login import UserMixin
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
 
 from db.model.sqlalchemy_base import Base
 
-class Client(Base):
+class Client(UserMixin, Base):
     __tablename__ = "client"
     client_id = sa.Column(UUID, primary_key=True, server_default=sa.text("uuid_generate_v4()"))
     name = sa.Column(sa.Text, nullable=False)

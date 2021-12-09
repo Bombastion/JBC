@@ -2,8 +2,9 @@ import logging
 import traceback
 import uuid
 
-from flask import Flask, json, jsonify, render_template, request
+from flask import flash, Flask, json, jsonify, redirect, render_template, request, url_for
 from werkzeug.exceptions import HTTPException, BadRequest
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from db.model.client import Client
 from db.model.item import Item
@@ -13,6 +14,11 @@ from db.model.model_handler import ClientQuery, CollectionQuery, ItemQuery, Item
 from db.model.sqlalchemy_base import SessionFactory
 
 app = Flask(__name__)
+app.secret_key = 'super secret key'
+app.config['SESSION_TYPE'] = 'filesystem'
+
+def hash_password(plaintext: str) -> str:
+   return generate_password_hash(plaintext, method='sha256')
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
@@ -38,7 +44,11 @@ def entry_exit_logging(func):
       try:
          # Log common info about the request
          logging.info(f"[{request_id}] Entering {func.__name__}")
-         logging.info(f"[{request_id}] Request form: {request.form}")
+         request_form_dict = dict(request.form)
+         # Don't log passwords in plain text
+         if request_form_dict.get("password", None):
+            request_form_dict["password"] = "..."
+         logging.info(f"[{request_id}] Request form: {request_form_dict}")
          logging.info(f"[{request_id}] Request args: {request.args}")
 
          result = func(*args, **kwargs)
@@ -66,15 +76,57 @@ def landing_page():
 def auth_base():
    return render_template('base.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET'])
 @entry_exit_logging
 def login():
    return render_template('login.html')
 
-@app.route('/signup')
+@app.route('/login', methods=['POST'])
+@entry_exit_logging
+def login_post():
+   email = request.form.get('email')
+   password = request.form.get('password')
+
+   handler = ModelHandler(SessionFactory)
+   existing_clients = handler.list_clients(ClientQuery(email=email))
+
+   if len(existing_clients) > 1:
+      raise ValueError(f"Provided email {email} has more than one user associated with it. Please contact admin support")
+
+   if len(existing_clients) < 1 or not check_password_hash(existing_clients[0].password, password):
+      flash("[danger]Email or password doesn't match. Please try again")
+      return redirect(url_for('login_wrapper'))
+
+   return redirect(url_for('user_cellars_page_wrapper'))
+
+
+@app.route('/signup', methods=['GET'])
 @entry_exit_logging
 def signup():
    return render_template('signup.html')
+
+@app.route('/signup', methods=["POST"])
+@entry_exit_logging
+def signup_post():
+   email = request.form.get('email')
+   name = request.form.get('name')
+   password = request.form.get('password')
+
+   handler = ModelHandler(SessionFactory)
+   existing_clients = handler.list_clients(ClientQuery(email=email))
+
+   if len(existing_clients) > 0: # if a user is found, we want to redirect back to signup page so user can try again
+      flash("[danger]A user with that email already exists")
+      return redirect(url_for('signup_wrapper'))
+
+   # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+   new_client = Client(email=email, name=name, password=hash_password(password))
+
+   # add the new user to the database
+   handler.persist_object(new_client)
+
+   flash("[success]Signup successful! Please log in with your new account")
+   return redirect(url_for('login_wrapper'))
 
 @app.route('/myCellars')
 @entry_exit_logging
