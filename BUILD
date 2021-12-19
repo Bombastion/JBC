@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_runtime", "py_runtime_pair")
 
+# Establish our py_runtime for a custom toolchain
 py_runtime(
     name = "python3_runtime",
     files = ["@python_interpreter//:files"],
@@ -19,3 +20,6 @@ toolchain(
     toolchain = ":py_runtime_pair",
     toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )
+
+# Export globally required files
+exports_files(["requirements.txt"])

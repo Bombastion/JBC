@@ -83,7 +83,7 @@ container_pull(
     name = "python3.9.9_slim_buster",
     registry = "docker.io",
     repository = "library/python",
-    digest = "sha256:1894f5a820074eef46c09cb88df65279f2b21f4df822032bbec90a83a2dd24b8",  # 3.9.9-slim-buster
+    digest = "sha256:47417cc0501dc412ecbd96cf6e8f667a6754542d78149caab6b96cd174ee6449",  # 3.9.9-slim-buster
 )
 
 load(
