@@ -29,9 +29,9 @@ filegroup(
         "make install",
         "ln -s bazel_install/bin/python3 python_bin",
     ],
-    sha256 = "f8145616e68c00041d1a6399b76387390388f8359581abc24432bb969b5e3c57",
-    strip_prefix = "Python-3.9.7",
-    urls = ["https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tar.xz"],
+    sha256 = "06828c04a573c073a4e51c4292a27c1be4ae26621c3edc7cf9318418ce3b6d27",
+    strip_prefix = "Python-3.9.9",
+    urls = ["https://www.python.org/ftp/python/3.9.9/Python-3.9.9.tar.xz"],
 )
 
 # Fetch official Python rules for Bazel
@@ -45,6 +45,7 @@ load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
 
+# Fetch pip and install our requirements.txt
 load("@rules_python//python:pip.bzl", "pip_install")
 
 pip_install(
@@ -53,29 +54,48 @@ pip_install(
     requirements = "//:requirements.txt",
 )
 
-# Bazel proto rules
+# Bazel Docker rules
 http_archive(
-    name = "rules_proto",
-    sha256 = "66bfdf8782796239d3875d37e7de19b1d94301e8972b3cbd2446b332429b4df1",
-    strip_prefix = "rules_proto-4.0.0",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
-        "https://github.com/bazelbuild/rules_proto/archive/refs/tags/4.0.0.tar.gz",
-    ],
+    name = "io_bazel_rules_docker",
+    sha256 = "59536e6ae64359b716ba9c46c39183403b01eabfbd57578e84398b4829ca499a",
+    strip_prefix = "rules_docker-0.22.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.22.0/rules_docker-v0.22.0.tar.gz"],
 )
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
-rules_proto_dependencies()
-rules_proto_toolchains()
 
-
-# Google proto rules
-git_repository(
-    name = "com_google_protobuf",
-    remote = "https://github.com/protocolbuffers/protobuf",
-    tag = "v3.18.0",
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
 )
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-protobuf_deps()
 
-# This line must be last
+container_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
+
+container_deps()
+
+# Pull a container matching the version of Python we've built above (3.9.9)
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
+container_pull(
+    name = "python3.9.9_slim_buster",
+    registry = "docker.io",
+    repository = "library/python",
+    digest = "sha256:47417cc0501dc412ecbd96cf6e8f667a6754542d78149caab6b96cd174ee6449",  # 3.9.9-slim-buster
+)
+
+load(
+    "@io_bazel_rules_docker//python3:image.bzl",
+    _py_image_repos = "repositories",
+)
+
+_py_image_repos()
+
+# These lines must be last
 register_toolchains("//:py_3_toolchain")
+register_execution_platforms(
+    "@local_config_platform//:host",
+    "@io_bazel_rules_docker//platforms:local_container_platform",
+)
